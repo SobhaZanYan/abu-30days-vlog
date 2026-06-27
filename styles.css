@@ -179,6 +179,59 @@ body::before {
   border-radius: 2px;
 }
 
+.prose .fit-line { padding-left: 0.25rem; }
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 1rem 0 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+.data-table th,
+.data-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+.data-table th {
+  background: var(--gold-dim);
+  color: var(--gold-light);
+  font-weight: 600;
+}
+.data-table tr:last-child td { border-bottom: none; }
+
+.code-block {
+  font-family: "SF Mono", Consolas, monospace;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+.article-foot {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.article-foot a { color: var(--gold-light); text-decoration: none; }
+.article-foot a:hover { color: var(--gold-bright); }
+.article-foot p + p { margin-top: 0.65rem; }
+
 .ep-nav {
   display: flex;
   justify-content: space-between;

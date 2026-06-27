@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-/** One-shot: convert series markdown → static HTML articles */
+/** Convert series markdown → reader-facing static HTML (no author / publish notes) */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
-const outDir = path.join(__dirname, '..', 'articles');
+const outDir = path.join(root, 'articles');
 const workspace = path.resolve(root, '..', '..');
 
 const episodes = [
@@ -18,34 +18,116 @@ const episodes = [
   { day: 6, file: '0627/Day6-阿布核心三岛总览.md', tag: 'ISLANDS', title: 'Day 6｜阿布核心三岛总览：72% 的成交发生在这里' },
 ];
 
+const CUT_SECTIONS = [
+  '### 【发布备注】',
+  '### 【结尾引导】',
+  '### 【封面',
+  '### 【口播',
+  '### 【系列内部备注',
+  '## 小红书发布配置',
+];
+
+function extractBody(md) {
+  const bodyStart = md.indexOf('## 正文');
+  if (bodyStart >= 0) return md.slice(bodyStart + '## 正文'.length);
+  return md;
+}
+
+function cutAuthorSections(text) {
+  let out = text;
+  for (const marker of CUT_SECTIONS) {
+    const i = out.indexOf(marker);
+    if (i >= 0) out = out.slice(0, i);
+  }
+  return out.trim();
+}
+
+function sanitizeForReader(body) {
+  const lines = body.split('\n');
+  const out = [];
+
+  for (let raw of lines) {
+    let line = raw.trimEnd();
+    const t = line.trim();
+
+    if (!t) {
+      out.push('');
+      continue;
+    }
+
+    if (/配图建议/.test(t)) continue;
+    if (/^>\s*📊/.test(t)) continue;
+    if (/^>\s*$/.test(t)) continue;
+
+    if (/^### 【开头/.test(t)) continue;
+    if (/^### 【正文结构】/.test(t)) continue;
+    if (/^### 【/.test(t)) continue;
+
+    if (/^#{2,6}\s+/.test(t) && /可直接复制/.test(t) && /收尾/.test(t)) {
+      out.push('## 总结');
+      continue;
+    }
+
+    if (/^####\s+/.test(t)) {
+      line = t
+        .replace(/^####\s+/, '## ')
+        .replace(/\s·\s*可直接复制\s*$/, '');
+    }
+
+    if (/^#####\s+/.test(t)) {
+      line = t.replace(/^#####\s+/, '### ');
+    }
+
+    line = line
+      .replace(/（非推荐，仅供建立认知）/g, '')
+      .replace(/市场上常见的项目类型：/g, '代表项目包括：')
+      .replace(/👉\s*\*\*解读：\*\*\s*/g, '')
+      .replace(/👉\s*\*\*解读\*\*：\s*/g, '')
+      .replace(/👉\s*/g, '');
+
+    if (/^四句话带走：/.test(t)) continue;
+    if (/^Day \d+ 只做一件事：/.test(t)) continue;
+    if (/^\*\*下一步（Day/i.test(t)) continue;
+    if (/Week 2 (先把|后半|进)/.test(t) && /Day [789]/.test(t)) continue;
+    if (/欢迎私信聊聊/.test(t)) continue;
+    if (/我是迪拜 William/.test(t)) continue;
+
+    out.push(line);
+  }
+
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
 function extractMeta(md, fallbackTitle) {
   const titleMatch = md.match(/^#\s+(.+)$/m);
   const title = fallbackTitle || (titleMatch ? titleMatch[1].trim() : 'Untitled');
-  let body = md;
-  const bodyStart = md.indexOf('## 正文');
-  if (bodyStart >= 0) {
-    body = md.slice(bodyStart + '## 正文'.length);
-  }
-  body = body.replace(/^---[\s\S]*?(?=\n###|\n####|\n[^#\s-])/m, '').trim();
-  const cutMarkers = ['### 【发布备注】', '### 【结尾引导】', '## 图片', '## 发布', '## 小红书', '### 【系列内部备注'];
-  for (const m of cutMarkers) {
-    const i = body.indexOf(m);
-    if (i > 0) body = body.slice(0, i);
-  }
+  let body = sanitizeForReader(cutAuthorSections(extractBody(md)));
   const teaser = body
     .replace(/^#+\s+/gm, '')
     .replace(/\*\*/g, '')
-    .replace(/^[-*>\s\d.]+/gm, '')
+    .replace(/[💬👉📊]/g, '')
     .split('\n')
     .map((l) => l.trim())
-    .find((l) => l.length > 20) || title;
-  return { title, body: body.trim(), teaser: teaser.slice(0, 120) };
+    .find((l) => l.length > 24 && !/^[\|>\-`]./.test(l)) || title;
+  return { title, body, teaser: teaser.slice(0, 120) };
 }
 
 function inline(s) {
   return s
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/`(.+?)`/g, '<code>$1</code>');
+}
+
+function isTableRow(line) {
+  return line.trim().startsWith('|') && line.trim().endsWith('|');
+}
+
+function isTableSep(line) {
+  return /^\|[\s\-:|]+\|$/.test(line.trim());
+}
+
+function parseTableRow(line) {
+  return line.trim().slice(1, -1).split('|').map((c) => c.trim());
 }
 
 function mdToHtml(md) {
@@ -61,36 +143,65 @@ function mdToHtml(md) {
     }
   };
 
-  for (let raw of lines) {
-    const line = raw.trimEnd();
-    if (!line.trim()) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trimEnd();
+    const t = line.trim();
+
+    if (!t) {
       closeList();
       continue;
     }
-    if (/^---+$/.test(line.trim())) {
+
+    if (isTableRow(t)) {
       closeList();
-      out.push('<hr />');
+      const rows = [];
+      while (i < lines.length && isTableRow(lines[i].trim())) {
+        if (!isTableSep(lines[i].trim())) rows.push(parseTableRow(lines[i]));
+        i++;
+      }
+      i--;
+      if (rows.length) {
+        out.push('<div class="table-wrap"><table class="data-table">');
+        rows.forEach((cells, ri) => {
+          const tag = ri === 0 ? 'th' : 'td';
+          out.push('<tr>' + cells.map((c) => `<${tag}>${inline(c)}</${tag}>`).join('') + '</tr>');
+        });
+        out.push('</table></div>');
+      }
       continue;
     }
-    const h4 = line.match(/^####\s+(.+)/);
-    if (h4) {
+
+    if (/^```/.test(t)) {
       closeList();
-      out.push(`<h4>${inline(h4[1])}</h4>`);
+      const code = [];
+      i++;
+      while (i < lines.length && !/^```/.test(lines[i].trim())) {
+        code.push(lines[i]);
+        i++;
+      }
+      out.push(`<pre class="code-block">${code.join('\n').replace(/</g, '&lt;')}</pre>`);
       continue;
     }
-    const h3 = line.match(/^###\s+(.+)/);
+
+    if (/^---+$/.test(t)) {
+      closeList();
+      continue;
+    }
+
+    const h3 = t.match(/^###\s+(.+)/);
     if (h3) {
       closeList();
       out.push(`<h3>${inline(h3[1])}</h3>`);
       continue;
     }
-    const h2 = line.match(/^##\s+(.+)/);
+    const h2 = t.match(/^##\s+(.+)/);
     if (h2) {
       closeList();
       out.push(`<h2>${inline(h2[1])}</h2>`);
       continue;
     }
-    const ul = line.match(/^[-*]\s+(.+)/);
+
+    const ul = t.match(/^[-*]\s+(.+)/);
     if (ul) {
       if (!inList || listType !== 'ul') {
         closeList();
@@ -101,7 +212,8 @@ function mdToHtml(md) {
       out.push(`<li>${inline(ul[1])}</li>`);
       continue;
     }
-    const ol = line.match(/^\d+\.\s+(.+)/);
+
+    const ol = t.match(/^\d+\.\s+(.+)/);
     if (ol) {
       if (!inList || listType !== 'ol') {
         closeList();
@@ -112,14 +224,22 @@ function mdToHtml(md) {
       out.push(`<li>${inline(ol[1])}</li>`);
       continue;
     }
-    const bq = line.match(/^>\s*(.*)/);
-    if (bq) {
+
+    const bq = t.match(/^>\s*(.+)/);
+    if (bq && bq[1].trim()) {
       closeList();
       out.push(`<blockquote>${inline(bq[1])}</blockquote>`);
       continue;
     }
+
+    if (/^[✅❌]/.test(t)) {
+      closeList();
+      out.push(`<p class="fit-line">${inline(t)}</p>`);
+      continue;
+    }
+
     closeList();
-    out.push(`<p>${inline(line.trim())}</p>`);
+    out.push(`<p>${inline(t)}</p>`);
   }
   closeList();
   return out.join('\n');
@@ -147,9 +267,13 @@ function articleHtml(ep, meta, html) {
     <header class="article-head">
       <a class="back" href="../index.html">← 系列目录</a>
       <h1>${meta.title.replace(/</g, '&lt;')}</h1>
-      <p class="meta">阿布房产30天 · Day ${ep.day} · ADREC 2025 数据系列</p>
+      <p class="meta">阿布房产30天 · Day ${ep.day} · 基于 ADREC 2025 公开数据</p>
     </header>
     <div class="prose">${html}</div>
+    <footer class="article-foot">
+      <p>数据来源：ADREC《2025 Abu Dhabi Real Estate Market Report》。以上内容基于公开资料整理，不构成法律、税务或投资建议；外国人购房仅限 Investment Zones，请以最新法规及专业人士意见为准。</p>
+      <p>交流咨询：<a href="https://sobhazanyan.github.io/william-xing-hub/" target="_blank" rel="noopener">William Xing · 主页</a></p>
+    </footer>
     <nav class="ep-nav">
       ${prev ? `<a href="${prev}">← Day ${ep.day - 1}</a>` : '<span></span>'}
       ${next ? `<a href="${next}">Day ${ep.day + 1} →</a>` : '<span></span>'}
@@ -168,7 +292,7 @@ for (const ep of episodes) {
   const meta = extractMeta(md, ep.title);
   const html = mdToHtml(meta.body);
   fs.writeFileSync(path.join(outDir, `day-${ep.day}.html`), articleHtml(ep, meta, html), 'utf8');
-  catalog.push({ ...ep, ...meta });
+  catalog.push({ day: ep.day, tag: ep.tag, title: meta.title, teaser: meta.teaser });
   console.log('built day-' + ep.day);
 }
 
