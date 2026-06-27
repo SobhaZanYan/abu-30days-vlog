@@ -271,7 +271,6 @@ function articleHtml(ep, meta, html) {
     </header>
     <div class="prose">${html}</div>
     <footer class="article-foot">
-      <p>数据来源：ADREC《2025 Abu Dhabi Real Estate Market Report》。以上内容基于公开资料整理，不构成法律、税务或投资建议；外国人购房仅限 Investment Zones，请以最新法规及专业人士意见为准。</p>
       <p>交流咨询：<a href="https://sobhazanyan.github.io/william-xing-hub/" target="_blank" rel="noopener">William Xing · 主页</a></p>
     </footer>
     <nav class="ep-nav">
