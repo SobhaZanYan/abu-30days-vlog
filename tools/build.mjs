@@ -17,6 +17,7 @@ const episodes = [
   { day: 5, file: '0626/Day5-人口多房为何还紧.md', tag: 'SUPPLY', title: 'Day 5｜人口比迪拜还多 20%——为什么房产反而更「紧」？' },
   { day: 6, file: '0627/Day6-阿布核心三岛总览.md', tag: 'ISLANDS', title: 'Day 6｜阿布核心三岛总览：72% 的成交发生在这里' },
   { day: 7, file: '0627/Day7-Al Reem岛深聊.md', tag: 'REEM', title: 'Day 7｜Al Reem Island 深聊：配套动线、价位带与选盘逻辑' },
+  { day: 8, file: '0627/Day8-Yas岛深聊.md', tag: 'YAS', title: 'Day 8｜Yas Island 深聊：整岛规划、完整社区与公寓别墅怎么选' },
 ];
 
 const MAX_DAY = episodes.length;
