@@ -81,6 +81,88 @@ body::before {
   margin-bottom: 0.5rem;
 }
 .hero p { font-size: 0.88rem; color: var(--muted); }
+
+.fold-block {
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.fold-block + .fold-block { margin-top: 1rem; }
+.fold-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.95rem 1.15rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: background 0.2s;
+}
+.fold-trigger::-webkit-details-marker { display: none; }
+.fold-trigger::marker { content: ""; display: none; }
+.fold-trigger:hover { background: rgba(201, 162, 39, 0.06); }
+.fold-trigger h2 {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--gold-light);
+  margin: 0;
+}
+.fold-badge {
+  flex-shrink: 0;
+  font-family: "SF Mono", Consolas, monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  background: var(--gold-dim);
+  border-radius: 2px;
+}
+.fold-chevron {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  color: var(--gold-bright);
+  transition: transform 0.2s;
+}
+.fold-block[open] .fold-chevron { transform: rotate(180deg); }
+.fold-panel { padding: 0 1rem 1.15rem; border-top: 1px solid var(--border); }
+.fold-panel .ep-grid { margin-top: 0.85rem; }
+
+.tool-links {
+  display: grid;
+  gap: 10px;
+  margin-top: 0.85rem;
+}
+.tool-link {
+  display: block;
+  padding: 0.85rem 1rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s, transform 0.15s;
+}
+.tool-link:hover {
+  border-color: rgba(232, 213, 163, 0.38);
+  transform: translateY(-1px);
+}
+.tool-link strong {
+  display: block;
+  font-size: 0.84rem;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.tool-link span {
+  font-size: 0.74rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .ep-grid {
   display: grid;
   gap: 12px;
