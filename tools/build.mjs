@@ -7,18 +7,19 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const outDir = path.join(root, 'articles');
-const workspace = path.resolve(root, '..', '..');
+const seriesRoot = path.resolve(root, '..');
+const sourceDir = path.join(seriesRoot, 'source');
 
 const episodes = [
-  { day: 1, file: '0622/Day1-阿布扎比区域地图全览.md', tag: 'MAP', title: 'Day 1｜阿布扎比买房，先认地图：一张图搞懂所有核心区域' },
-  { day: 2, file: '0622/Day2-阿布扎比vs迪拜对比.md', tag: 'VS', title: 'Day 2｜阿布扎比 vs 迪拜：为什么已经在看迪拜，还要看阿布？' },
-  { day: 3, file: '0623/Day3-谁在买阿布房产.md', tag: 'WHO', title: 'Day 3｜谁在买阿布房产？本地 vs 国际，期房占 7 成说明什么' },
-  { day: 4, file: '0625/Day4-阿布扎比的三张底牌.md', tag: 'EDGE', title: 'Day 4｜阿布扎比的「底牌」：主权基金、零税、外交政策' },
-  { day: 5, file: '0626/Day5-人口多房为何还紧.md', tag: 'SUPPLY', title: 'Day 5｜人口比迪拜还多 20%——为什么房产反而更「紧」？' },
-  { day: 6, file: '0627/Day6-阿布核心三岛总览.md', tag: 'ISLANDS', title: 'Day 6｜阿布核心三岛总览：72% 的成交发生在这里' },
-  { day: 7, file: '0627/Day7-Al Reem岛深聊.md', tag: 'REEM', title: 'Day 7｜Al Reem Island 深聊：配套动线、价位带与选盘逻辑' },
-  { day: 8, file: '0627/Day8-Yas岛深聊.md', tag: 'YAS', title: 'Day 8｜Yas Island 深聊：整岛规划、完整社区与公寓别墅怎么选' },
-  { day: 9, file: '0627/Day9-Saadiyat岛深聊.md', tag: 'SAADIYAT', title: 'Day 9｜Al Saadiyat Island 深聊：文化顶奢、FDI 配置与三岛价位对照' },
+  { day: 1, file: 'Day1-阿布扎比区域地图全览.md', tag: 'MAP', title: 'Day 1｜阿布扎比买房，先认地图：一张图搞懂所有核心区域' },
+  { day: 2, file: 'Day2-阿布扎比vs迪拜对比.md', tag: 'VS', title: 'Day 2｜阿布扎比 vs 迪拜：为什么已经在看迪拜，还要看阿布？' },
+  { day: 3, file: 'Day3-谁在买阿布房产.md', tag: 'WHO', title: 'Day 3｜谁在买阿布房产？本地 vs 国际，期房占 7 成说明什么' },
+  { day: 4, file: 'Day4-阿布扎比的三张底牌.md', tag: 'EDGE', title: 'Day 4｜阿布扎比的「底牌」：主权基金、零税、外交政策' },
+  { day: 5, file: 'Day5-人口多房为何还紧.md', tag: 'SUPPLY', title: 'Day 5｜人口比迪拜还多 20%——为什么房产反而更「紧」？' },
+  { day: 6, file: 'Day6-阿布核心三岛总览.md', tag: 'ISLANDS', title: 'Day 6｜阿布核心三岛总览：72% 的成交发生在这里' },
+  { day: 7, file: 'Day7-Al Reem岛深聊.md', tag: 'REEM', title: 'Day 7｜Al Reem Island 深聊：配套动线、价位带与选盘逻辑' },
+  { day: 8, file: 'Day8-Yas岛深聊.md', tag: 'YAS', title: 'Day 8｜Yas Island 深聊：整岛规划、完整社区与公寓别墅怎么选' },
+  { day: 9, file: 'Day9-Saadiyat岛深聊.md', tag: 'SAADIYAT', title: 'Day 9｜Al Saadiyat Island 深聊：文化顶奢、FDI 配置与三岛价位对照' },
 ];
 
 const MAX_DAY = episodes.length;
@@ -292,7 +293,7 @@ fs.mkdirSync(outDir, { recursive: true });
 const catalog = [];
 
 for (const ep of episodes) {
-  const src = path.join(workspace, ep.file);
+  const src = path.join(sourceDir, ep.file);
   const md = fs.readFileSync(src, 'utf8');
   const meta = extractMeta(md, ep.title);
   const html = mdToHtml(meta.body);
