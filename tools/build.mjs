@@ -20,6 +20,7 @@ const episodes = [
   { day: 7, file: 'Day7-Al Reem岛深聊.md', tag: 'REEM', title: 'Day 7｜Al Reem Island 深聊：配套动线、价位带与选盘逻辑' },
   { day: 8, file: 'Day8-Yas岛深聊.md', tag: 'YAS', title: 'Day 8｜Yas Island 深聊：整岛规划、完整社区与公寓别墅怎么选' },
   { day: 9, file: 'Day9-Saadiyat岛深聊.md', tag: 'SAADIYAT', title: 'Day 9｜Al Saadiyat Island 深聊：文化顶奢、FDI 配置与三岛价位对照' },
+  { day: 10, file: 'Day10-三岛租房市场2025.md', tag: 'RENT', title: 'Day 10｜三岛租房市场：2025 租金、收益率与怎么选' },
 ];
 
 const MAX_DAY = episodes.length;
